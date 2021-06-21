@@ -17,7 +17,7 @@ console.log("totalScreenshoots ",totalScreenshoots)
 console.log("screenShootsTimeDiffInMilliSeconds",screenShootsTimeDiffInMilliSeconds)
 
 
-var folderName = 'benchmarkScreenCapture/'+(svgFilePath.split('.')[0]);
+var folderName = "benchmarkScreenCapture/svg"+(svgFilePath.split('.')[0])+"/"+screenshootsPerSecond+"fps";
 fse.emptyDirSync(folderName);
 
 loadTemplate();
@@ -25,9 +25,9 @@ loadTemplate();
 
 async function loadTemplate(){
   var svgContent = fs.readFileSync("svgs/"+svgFilePath, "utf-8");
-  browser = await puppeteer.connect(
+  browser = await puppeteer.launch(
     {
-      browserWSEndpoint: 'http://127.0.0.1:21222',
+      headless:true
     },
     );
   page = await browser.newPage();
@@ -48,7 +48,7 @@ async function captureAScreenShot(){
     var timeDifferenceBetweenShoot = cd -lastScreenShootTime;
     if((timeDifferenceBetweenShoot>screenShootsTimeDiffInMilliSeconds)&&frameNumber<=totalScreenshoots){
       frameNumber++;
-      await page.screenshot({
+      page.screenshot({
         path:(folderName+"/"+frameNumber+".png"),
         fullPage: false
       })
@@ -57,10 +57,10 @@ async function captureAScreenShot(){
       if(frameNumber==totalScreenshoots){
         needToTakeScreenShoot=false
       }
-      setTimeout(captureAScreenShot,15)
+      setTimeout(captureAScreenShot,5)
     }
     else{
-      setTimeout(captureAScreenShot,15)
+      setTimeout(captureAScreenShot,5)
     }
 
   }
