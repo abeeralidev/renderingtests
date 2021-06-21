@@ -1,0 +1,4 @@
+
+
+ffmpeg -r 40 -f concat -i a.txt -pix_fmt yuv420p -y out.mp4
+
