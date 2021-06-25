@@ -1,0 +1,1 @@
+npm run firefox-launch-timer

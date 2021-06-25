@@ -25,11 +25,17 @@ loadTemplate();
 
 async function loadTemplate(){
   var svgContent = fs.readFileSync("svgs/"+svgFilePath, "utf-8");
-  browser = await puppeteer.launch(
-    {
-      headless:true
-    },
-    );
+  // browser = await puppeteer.launch(
+  //   {
+  //     headless:true
+  //   },
+  //   );
+
+  const browserURL = 'http://127.0.0.1:9222';
+  browser = await puppeteer.connect({
+    browserURL :browserURL,
+    product :'firefox'
+  });
   page = await browser.newPage();
   await page.setViewport({ width: 1920, height: 1080 })
   await page.setContent(svgContent);
