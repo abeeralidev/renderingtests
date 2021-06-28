@@ -1,0 +1,1 @@
+npm config set PUPPETEER_PRODUCT firefox

@@ -5,7 +5,7 @@ var  cheerio  = require('cheerio');
 const { exec } = require("child_process");
 var browser;
 var page;
-var config = JSON.parse(fs.readFileSync("firefox-launch-timer.json", "utf8"));
+var config = JSON.parse(fs.readFileSync("chrome.json", "utf8"));
 var svgFilePath = config.svgFilePath;
 var videoDuration = config.videoDuration;
 var screenshootsPerSecond = config.screenshootsPerSecond;
@@ -20,7 +20,7 @@ var intervalDuration = 1000 / screenshootsPerSecond;
 var imagecount = 0;
 var svgContent = fs.readFileSync("svgs/" + svgFilePath, "utf-8");
 var foldername =
-  "screenshoots/svg" +
+  "screenshoots/chrome/svg" +
   svgFilePath.split(".")[0] +
   "-" +
   screenshootsPerSecond +
@@ -43,12 +43,11 @@ async function parseSvgTempalte(){
   })
    
 }
-var svg;
 async function startBrowser() {
   return new Promise(async res => {
     browser = await puppeteer.launch(
       {
-        headless: true,
+        headless: false,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -62,7 +61,7 @@ async function startBrowser() {
     page = await browser.newPage();
     await page.setContent(svgContent);
     await page.setViewport({ width: 1920, height: 1080 });
-    svg = await page.waitForSelector("svg");
+    await page.waitForSelector("svg");
 
     res();
   })
@@ -83,8 +82,8 @@ async function captureAScreenShot() {
         type: "png",
         fullPage: false,
       });
-      fse.outputFile(foldername + "/" + imagecount++ + ".png", imageBuffer);
-      ffmpegfilelist += "file " + (frameNumber + 1) + ".png\n";
+      fse.outputFile(foldername + "/" + ++imagecount + ".png", imageBuffer);
+      ffmpegfilelist += "file " + (imagecount) + ".png\n";
       res();
     })
   );
