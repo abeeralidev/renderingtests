@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
+
+    <script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+      integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+      crossorigin="anonymous"
+    ></script>
+
+    <link
+      rel="stylesheet"
+      href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
+      integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p"
+      crossorigin="anonymous"
+    />
+
+    <title>Render</title>
+  </head>
+  <body>
+    <h1 style="text-align: center">
+      Enter parameters for creating video from slides
+    </h1>
+    <div class="container">
+      <form>
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="inputEmail4">Resolution Width</label>
+            <input
+              type="number"
+              class="form-control"
+              id="resolution"
+              name="resolution"
+              placeholder="eg: 1920"
+            />
+          </div>
+          <div class="form-group col-md-6">
+            <label for="inputPassword4">Each Slide duration</label>
+            <input
+              type="number"
+              class="form-control"
+              id="slide_duration"
+              name="slide_duration"
+              placeholder="Slide duration"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="inputCity">Screen shot per second</label>
+            <input
+              type="number"
+              class="form-control"
+              id="screen_shot_per_second"
+              name="screen_shot_per_second"
+              placeholder="Screen shot per second"
+            />
+          </div>
+          <div class="form-group col-md-4">
+            <label for="inputState">Output frames per second</label>
+            <input
+              type="number"
+              class="form-control"
+              id="output_frames_per_second"
+              name="output_frames_per_second"
+              placeholder="Output frames per second (eg:3,4)"
+            />
+          </div>
+          <div class="form-group col-md-2">
+            <label for="inputState">Select file</label>
+            <input
+              accept=".svg"
+              type="file"
+              onchange="inputfilechanged(this)"
+              multiple
+              class="form-control"
+              id="images"
+            />
+          </div>
+        </div>
+        <button
+          id="mybtn"
+          type="button"
+          onclick="submit_value()"
+          class="btn btn-primary"
+        >
+          Submit
+        </button>
+      </form>
+      <div>Progress: <span id="progress"></span></div>
+<hr>
+      <div id="hereshow_selected_images" alt=""></div>
+      <div id="videos"></div>
+    </div>
+
+    <script>
+      var selectedfiles = [];
+
+      function inputfilechanged(inp) {
+        var files = inp.files;
+
+        for (let index = 0; index < files.length; index++) {
+          const element = files[index];
+          selectedfiles.push(element);
+        }
+        showimages();
+      }
+      function delete_image(image_index) {
+        selectedfiles.splice(image_index, 1);
+        showimages();
+      }
+
+      function showimages() {
+        $("#hereshow_selected_images").empty();
+
+        for (var i = 0; i < selectedfiles.length; i++) {
+          $("#hereshow_selected_images")
+            .append(`<div style="display:inline-block;margin:5px"><i onclick="delete_image('${i}')" class="fa fa-window-close" aria-hidden="true"></i>
+       <p>${selectedfiles[i].name}</p></div>
+       `);
+        }
+      }
+      
+      function submit_value() {
+        var resolution = document.getElementById("resolution").value;
+        var slide_duration = document.getElementById("slide_duration").value;
+        var screen_shot_per_second = document.getElementById(
+          "screen_shot_per_second"
+        ).value;
+        var output_frames_per_second = document.getElementById(
+          "output_frames_per_second"
+        ).value;
+        console.log(
+          resolution,
+          slide_duration,
+          screen_shot_per_second,
+          output_frames_per_second,
+          selectedfiles
+        );
+        if (
+          selectedfiles.length == 0 ||
+          resolution == "" ||
+          slide_duration == "" ||
+          screen_shot_per_second == "" ||
+          output_frames_per_second == ""
+        ) {
+          alert("fill the form");
+          return;
+        }
+        var formdata = new FormData();
+        formdata.append("resolution", resolution);
+        formdata.append("slide_duration", slide_duration);
+        formdata.append("screen_shot_per_second", screen_shot_per_second);
+        formdata.append("output_frames_per_second", output_frames_per_second);
+
+        for (let index = 0; index < selectedfiles.length; index++) {
+          const element = selectedfiles[index];
+          formdata.append("files", element);
+        }
+        $("#mybtn").attr("disabled", true);
+        $("#progress").text(0+"%")
+        $.ajax({
+          xhr: function () {
+            var xhr = new window.XMLHttpRequest();
+            //Upload progress
+            xhr.upload.addEventListener(
+              "progress",
+              function (evt) {
+                if (evt.lengthComputable) {
+                  var percentComplete = evt.loaded / evt.total;
+                  renderingTimeStart = Date.now();
+                  $("#progress").text((percentComplete * 100)+"%")
+                }
+              },
+              false
+            );
+            return xhr;
+          },
+
+          url: "/home/makevideo",
+          type: "post",
+          data: formdata,
+          processData: false,
+          contentType: false,
+          "content-type": "application/x-www-form-urlencoded",
+          success: function (data) {
+            renderingTime = Date.now()-renderingTimeStart;
+            alert("Rendering time "+(renderingTime/1000)+" seconds")
+            $("#mybtn").attr("disabled", false);
+            console.log("success");
+            console.log(data);
+            if (data.status == "success") {
+              $("#videos").append(
+                "<video controls width='400px' height='200px' src='" +
+                  data.video +
+                  "'></video>"
+              );
+            }
+          },
+          error: function (data) {
+            $("#mybtn").attr("disabled", false);
+            console.log("error");
+            console.log(data);
+          },
+        });
+      }
+    </script>
+  </body>
+</html>
